@@ -1,10 +1,10 @@
 import UIKit
 
-public class PennyPincher {
+@objc public class PennyPincher:NSObject {
     
     private static let NumResamplingPoints = 16
     
-    public init() {
+    public override init() {
         
     }
     
@@ -15,6 +15,39 @@ public class PennyPincher {
         
         return PennyPincherTemplate(id: id, points: PennyPincher.resampleBetweenPoints(points))
     }
+    public class func serializeTemplate(temp: PennyPincherTemplate, toURL:NSURL){
+        temp.encodeTemplate(toURL)
+    }
+    
+    public class func template(fromURL:NSURL)->PennyPincherTemplate?{
+        
+        guard let template=PennyPincherTemplate.decodeFromURL(fromURL) else{
+            return nil
+        }
+        return template
+        
+    }
+    
+    class func gestureRecognizerForURLS(urls: [NSURL])->PennyPincherGestureRecognizer?{
+        let templates=urls.map({(url:NSURL)->PennyPincherTemplate in
+            return PennyPincher.template(url)!
+        })
+        let gesture=PennyPincherGestureRecognizer()
+        gesture.cancelsTouchesInView=false
+        gesture.templates.appendContentsOf(templates)
+        return gesture
+    }
+    
+    
+    
+    //    class func gestureRecognizerFor(view:GestureView,identifier:String)->PennyPincherGestureRecognizer?{
+    //        if let template=PennyPincher.createTemplate(identifier, points: view.points){
+    //            let recog=PennyPincherGestureRecognizer()
+    //            recog.templates.append(template)
+    //            return recog
+    //        }
+    //        return nil
+    //    }
     
     public class func recognize(points: [CGPoint], templates: [PennyPincherTemplate]) -> (template: PennyPincherTemplate, similarity: CGFloat)? {
         if points.count == 0 || templates.count == 0 {
